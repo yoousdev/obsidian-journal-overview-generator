@@ -30,11 +30,13 @@ The script reads the notes from a directory that is organized by year and month
   - 2025-01-12: Added monthly index files with links in yearly index
 - Version 1.5
   - 2025-01-12: Fixed bug in metadata writing and improved code structure
+- Version 1.6
+  - 2025-01-12: Fixed date metadata bug
 
 ## Information
 Author: Serge Decker
 Date: 2025-01-12
-Version 1.5
+Version 1.6
 Licence: MIT
 Contact: serge.decker@gmail.com
 """
@@ -50,11 +52,11 @@ locale.setlocale(locale.LC_ALL, 'de_CH')
 
 def extract_metadata(index_file):
     """Extracts metadata from an existing index file."""
-    old_date = ""
+    old_date = datetime.now().strftime('%Y-%m-%d')
     if os.path.exists(index_file):
         with open(index_file, "r", encoding="utf-8") as f:
             content = f.read()
-            match = re.search(r"date:\s*(.*)", content)
+            match = re.search(r"\ndate:\s*(.*?)\n", content)
             if match:
                 old_date = match.group(1).strip()
     return old_date
@@ -69,7 +71,7 @@ def write_metadata(index_file, year, old_date, found_months, title="Overview {ye
         f.write(f"title: {title.format(year=year)}\n")
         f.write("author: Serge Decker\n")
         f.write("type: TableOfContents\n")
-        f.write(f"date: {old_date}\n" if old_date else "date: \n")
+        f.write(f"date: {old_date}\n")
         f.write(f"updated_date: {datetime.now().strftime('%Y-%m-%d')}\n")
         f.write("tags:\n")
         for tag in tags:
