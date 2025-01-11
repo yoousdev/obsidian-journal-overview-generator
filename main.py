@@ -23,11 +23,13 @@ The script reads the notes from a directory that is organized by year and month
   - 2025-01-12: Refactored code into multiple functions
 - Version 1.2
   - 2025-01-12: Added support for complex filenames with underscores
+- Version 1.3
+  - 2025-01-12: Removed redundant function, fixed KeyError and simplified month tag generation
 
 ## Information
 Author: Serge Decker
 Date: 2025-01-12
-Version 1.2
+Version 1.3
 Licence: MIT
 Contact: serge.decker@gmail.com
 """
@@ -65,8 +67,8 @@ def write_metadata(index_file, year, old_date):
         f.write("tags:\n  - daily\n  - overview\n  - collection\n")
 
 
-def write_notes_list(f, year, journal_dir):
-    """Writes a list of all daily notes to the index file."""
+def month_statistics(year, journal_dir):
+    """Calculates the number of notes per month for a given year."""
     found_months = []
     total_notes = 0
     for month in range(1, 13):
@@ -75,21 +77,13 @@ def write_notes_list(f, year, journal_dir):
             found_months.append(datetime(int(year), month, 1).strftime('%B'))
             entries = [entry for entry in sorted(os.listdir(month_dir)) if entry.endswith(".md")]
             total_notes += len(entries)
-            for entry in entries:
-                date_part = entry.split("_")[0]
-                f.write(f"- [[{year}{month:02d}/{entry}]]\n")
     return found_months, total_notes
 
 
 def write_month_tags(f, found_months):
     """Writes German month names as tags to the index file."""
-    month_names_de = {
-        "January": "Januar", "February": "Februar", "March": "März", "April": "April",
-        "May": "Mai", "June": "Juni", "July": "Juli", "August": "August",
-        "September": "September", "October": "Oktober", "November": "November", "December": "Dezember"
-    }
     for month_name in found_months:
-        f.write(f"  - {month_names_de[month_name].lower()}\n")
+        f.write(f"  - {month_name.lower()}\n")
     f.write(f"  - {year}\n---\n\n")
 
 
@@ -129,7 +123,7 @@ def generate_index(year):
     write_metadata(index_file, year, old_date)
 
     with open(index_file, "a", encoding="utf-8") as f:
-        found_months, total_notes = write_notes_list(f, year, journal_dir)
+        found_months, total_notes = month_statistics(year, journal_dir)
         write_month_tags(f, found_months)
         write_statistics(f, year, total_notes, journal_dir)
         write_table_of_contents(f, year, journal_dir)
